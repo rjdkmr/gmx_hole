@@ -1,0 +1,25 @@
+remark: van der Waals radii: AMBER united atom
+remark: from Weiner et al. (1984), JACS, vol 106 pp765-768
+remark: Simple - Only use one value for each element C O H etc.
+remark: van der Waals radii
+remark: general last
+VDWR C??? ??? 1.00
+VDWR O??? ??? 0.891891892
+VDWR S??? ??? 1.081081081
+VDWR N??? ??? 0.945945946
+VDWR H??? ??? 0.540540541
+VDWR P??? ??? 1.135135135
+VDWR Z??? ??? 0.4
+remark: ASN, GLN polar H (odd names for these atoms in xplor)
+VDWR E2?  GLN 1.00 
+VDWR D2?  ASN 1.00 
+remark: amber lone pairs on sulphurs
+VDWR LP?? ??? 0.00
+remark: need bond rad for molqpt option
+BOND C??? 0.85
+BOND N??? 0.75
+BOND O??? 0.7
+BOND S??? 1.1
+BOND H??? 0.5
+BOND P??? 1.0
+BOND ???? 0.85

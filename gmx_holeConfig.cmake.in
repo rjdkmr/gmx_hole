@@ -1,0 +1,19 @@
+# - Config file for the gmx_hole package
+# It defines the following variables
+#  gmx_hole_INCLUDE_DIRS - include directories for FooBar
+#  gmx_hole_LIBRARIES    - libraries to link against
+#  gmx_hole_EXECUTABLE   - the bar executable
+ 
+# Compute paths
+get_filename_component(gmx_hole_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+set(gmx_hole_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+  
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(NOT TARGET gmxhole AND NOT gmx_hole_BINARY_DIR)
+    include("${gmx_hole_CMAKE_DIR}/gmx_holeTargets.cmake")
+endif()
+	 
+# These are IMPORTED targets created by gmx_holeTargets.cmake
+# set(gmx_hole_LIBRARIES gmxhole)
+set(gmx_hole_EXECUTABLE gmx_hole)
+
