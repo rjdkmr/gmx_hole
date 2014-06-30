@@ -37,4 +37,6 @@ If fftw library <code> libfftw3f.so or libfftw3f.a </code> are not present in st
 ***
 
 ###Usage
-</code></pre>gmx_hole -h</code></pre>
+<pre><code>gmx_hole -h
+</code></pre>
+***
