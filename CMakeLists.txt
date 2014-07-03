@@ -5,7 +5,7 @@ set(gmx_hole_MAJOR_VERSION 1)
 set(gmx_hole_MINOR_VERSION 0)
 set(gmx_hole_PATCH_VERSION 0)
 set(gmx_hole_VERSION
-  ${FOOBAR_MAJOR_VERSION}.${FOOBAR_MINOR_VERSION}.${FOOBAR_PATCH_VERSION})
+  ${gmx_hole_MAJOR_VERSION}.${gmx_hole_MINOR_VERSION}.${gmx_hole_PATCH_VERSION})
 
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
