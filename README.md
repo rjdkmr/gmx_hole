@@ -11,7 +11,9 @@ _Biophysical Journal_ 65:2455-2460.
 ***
 
 ###Requirements
-To compile and install, GROMACS libraries <code> libgmx, libmd, libgmxana </code> are required.
+* To compile and install, GROMACS libraries <code> libgmx, libmd, libgmxana </code> are required.
+* To use <code>gmx_hole</code>, <code>hole</code> program should be already installed.
+
 ***
 
 ###Download
@@ -29,7 +31,7 @@ make install
 </code></pre>
 
 Directory <code>/opt/gromacs</code> should contains <code>include</code> and <code> lib </code> directories. If these directories are in seprate locations, use followings:
-<pre><code>cmake ..  -DGMX_LIB=/path/to/lib -GMX_INCLUDE=/path/to/include -DCMAKE_INSTALL_PREFIX=/opt/gmxhole
+<pre><code>cmake ..  -DGMX_LIB=/path/to/lib -DGMX_INCLUDE=/path/to/include -DCMAKE_INSTALL_PREFIX=/opt/gmxhole
 </code></pre>
 
 If fftw library <code> libfftw3f.so or libfftw3f.a </code> are not present in standard locations:
@@ -37,6 +39,10 @@ If fftw library <code> libfftw3f.so or libfftw3f.a </code> are not present in st
 ***
 
 ###Usage
+
+To calculate channel radius using hole program. <code>hole</code> program should be already installed and present in <code>$PATH</code> environment variable.
+
+
 <pre><code>gmx_hole -h
 </code></pre>
 ***
