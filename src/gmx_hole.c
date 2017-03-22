@@ -55,6 +55,10 @@
 
 #include "ExtractData.h"
 
+struct DataContainer {
+
+};
+
 void CopyRightMsg() {
 
     char *copyright[] = {
@@ -131,18 +135,38 @@ int cat_pdb(int nframe, char *fn_input, FILE *fOut)	{
 	return 0;
 }
 
-int add_data_to_file(char *fn_input, FILE *fRad)	{
-	int i = 0;
+int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
+	int i = 0, j = 0, index =0;
 	FILE *f_input;
-	int number=0;
+	int number=0, dataNumber=0;
+	float *radius=NULL, *center=NULL;
 	char **data=NULL;
 	char **SplitData = NULL;
 	gmx_bool bCenXYZ=FALSE;
+	gmx_bool bGotDataSection = FALSE;
+	float coord[3], **coordList;
+	char residues[2][10], **residueList;
+	int centerAxis = ZZ, sign=1;
+
+	if(cvect[XX] != 0)
+		centerAxis = XX;
+
+	if(cvect[YY] != 0)
+		centerAxis = YY;
+
+	if(cvect[ZZ] != 0)
+		centerAxis = ZZ;
+
+	// when negative vector is used, hole program gives opposite coordinate in radius section
+	// so, multiply it by -1
+	if(cvect[centerAxis] < 0 )
+		sign = -1;
 
 	f_input = fopen(fn_input, "r");
 	data = get_all_lines(f_input, &number);
 	fclose(f_input);
 
+	// Parse center coordinate and radius, skip mid-point
 	for(i=0;i<number;i++)	{
 		if (data[i]==NULL)
 			continue;
@@ -158,14 +182,101 @@ int add_data_to_file(char *fn_input, FILE *fRad)	{
 		}
 
 		if(bCenXYZ)	{
-			if(is_first_numerics(data[i])){
+			if( (is_first_numerics(data[i])) && (strstr(data[i], "sampled") != NULL) ) {
+
+				if(radius == NULL)	{
+					snew(radius, 1);
+					snew(center, 1);
+				}
+				else	{
+					srenew(radius, dataNumber+1);
+					srenew(center, dataNumber+1);
+				}
+
 				SplitData = split_by_space(data[i]);
-				fprintf(fRad,"%s   %s\n",SplitData[0],SplitData[1]);
+				//fprintf(fRad,"%s   %s\n",SplitData[0],SplitData[1]);  // old one
+
+				dataNumber +=1 ;
+				radius[dataNumber-1] = strtof(SplitData[1], NULL);
+				center[dataNumber-1] = sign *strtof(SplitData[0], NULL); // multiply by sign
 				free(SplitData);
 			}
 		}
 	}
+
+	// Allocation memory for residue and coordinate list
+	snew(residueList, dataNumber);
+	snew(coordList, dataNumber);
+	for(i=0; i<dataNumber; i++)	{
+		snew(residueList[i], 20);
+		snew(coordList[i], 3);
+	}
+
+	// Parse residues and full coordinate of each center
+	for(i=0;i<number;i++)	{
+		if (data[i]==NULL)
+			continue;
+
+		// start for each center
+		if(strstr(data[i],"highest radius point found:")!=NULL)	{
+			bGotDataSection = TRUE;
+			continue;
+		}
+
+		// finish for each center
+		if(strstr(data[i],"stored as")!=NULL)	{
+			bGotDataSection = FALSE;
+
+			// get residue information for center
+			for(j=0; j< dataNumber; j++)	{
+				if (coord[centerAxis] == center[j])	{
+					index = j;
+					break;
+				}
+			}
+
+			// Store data in arrays
+			sprintf(residueList[index], "%s,%s", residues[0], residues[1]);
+			for(j=0; j<3; j++)
+				coordList[index][j] = coord[j];
+			continue;
+		}
+
+		// Parse coordinate
+		if ( (bGotDataSection) && (strstr(data[i],"at point")!=NULL) ) {
+			SplitData = split_by_space(data[i]);
+			coord[XX] = strtof(SplitData[2], NULL);
+			coord[YY] = strtof(SplitData[3], NULL);
+			coord[ZZ] = strtof(SplitData[4], NULL);
+			free(SplitData);
+		}
+
+		// Parse closest residue
+		if ( (bGotDataSection) && (strstr(data[i],"closest atom surface")!=NULL) ) {
+			SplitData = split_by_space(data[i]);
+			sprintf(residues[0], "%s%s", SplitData[5], SplitData[6]);
+			free(SplitData);
+		}
+
+		// Parse 2nd closest residue
+		if ( (bGotDataSection) && (strstr(data[i],"2nd closest surface")!=NULL) ) {
+			SplitData = split_by_space(data[i]);
+			sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+			free(SplitData);
+		}
+
+	}
+
+	for(i=0; i<dataNumber; i++)	{
+		fprintf(fRad, "%5.3f  %5.3f  %5.3f  %5.3f  %s\n", coordList[i][0], coordList[i][1], coordList[i][2], radius[i], residueList[i]);
+	}
+
+	sfree(residueList);
+	sfree(coordList);
+	sfree(radius);
+	sfree(center);
 	free(data);
+
 	return 0;
 }
 
@@ -247,7 +358,7 @@ int main (int argc,char *argv[])	{
    char       hole_cmd[1024];
    FILE *tmpf;
    int i=0;
-   gmx_bool bOutPDB=FALSE;
+   gmx_bool bOutPDB=FALSE, bM=TRUE;
 
    //Reading topology
    read_tps_conf(ftp2fn(efTPS,NFILE,fnm),title,&top,&ePBC,&xp,NULL,box,FALSE);
@@ -264,22 +375,30 @@ int main (int argc,char *argv[])	{
 		 gmx_fatal(FARGS,"Need >= 3 points to fit!\n");
    }
 
+   if (fn2bTPX(ftp2fn(efTPS,NFILE,fnm)) == FALSE)
+	   bM = FALSE;
+
    real *w_rls=NULL;
    if(bFit)	{
  	   snew(w_rls,top.atoms.nr);
- 	   for(i=0; (i<nfit); i++)
- 		   w_rls[ifit[i]]=top.atoms.atom[ifit[i]].m;
+ 	   for(i=0; (i<nfit); i++)	{
+ 		   if(bM)
+ 			   w_rls[ifit[i]]=top.atoms.atom[ifit[i]].m;
+ 		   else
+ 			  w_rls[ifit[i]]=1.0;
+ 	   }
     }
 
 
    //Getting index
    get_index(&top.atoms,ftp2fn_null(efNDX,NFILE,fnm),1,&indsize,&index,&grpnm);
 
-   if (bFit)
-	   reset_x(nfit,ifit,top.atoms.nr,NULL,xp,w_rls);
+   //if (bFit)
+	   //reset_x(nfit,ifit,top.atoms.nr,NULL,xp,w_rls);
+
    natoms=read_first_x(oenv,&status,ftp2fn(efTRX,NFILE,fnm),&t,&x,box);
    if (bFit)	{
-	   reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
+	   //reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
 	   do_fit(natoms,w_rls,xp,x);
    }
 
@@ -311,7 +430,7 @@ int main (int argc,char *argv[])	{
 
    do	{
 	   if (bFit)	{
-		   reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
+		   //reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
 		   do_fit(natoms,w_rls,xp,x);
 	   }
 
@@ -331,12 +450,12 @@ int main (int argc,char *argv[])	{
 		   gmx_fatal(FARGS,"Failed to execute command: %s",hole_cmd);
 
 	   fprintf(fRad,"\n# Time = %15.5f\n",t);
-	   add_data_to_file(hole_outfile, fRad);
+	   add_data_to_file(hole_outfile, fRad, cvect);
 
 	   if(bOutPDB)
 		   cat_pdb(nframe, hole_outPDB , fOutPDB);
 
-	   remove(pdbfile);
+	   //remove(pdbfile);
 	   remove(hole_outPDB);
 	   nframe++;
 

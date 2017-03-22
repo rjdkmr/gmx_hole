@@ -40,7 +40,7 @@ find_library(LIBMD md HINTS ${GMX_LIB})
 add_executable(gmx_hole gmx_hole.c ExtractData.h ExtractData.c)
 
 
-target_link_libraries(gmx_hole m ${LIBFFTW} ${LIBGMX} ${LIBGMXANA} ${LIBMD} pthread dl)
+target_link_libraries(gmx_hole m ${LIBGMX} ${LIBFFTW} ${LIBGMXANA} ${LIBMD} pthread dl)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
 
 install(TARGETS gmx_hole
