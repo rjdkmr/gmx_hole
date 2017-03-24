@@ -40,24 +40,24 @@
  *
  */
 
-#include "typedefs.h"
-#include "statutil.h"
-#include "smalloc.h"
-#include "do_fit.h"
-#include "pbc.h"
-#include "string2.h"
-#include "copyrite.h"
-#include "gmx_fatal.h"
-#include "index.h"
-#include "tpxio.h"
-#include "rmpbc.h"
-#include "vec.h"
+#include <string.h>
 
-#include "ExtractData.h"
+#include "gromacs/legacyheaders/typedefs.h"
+#include "gromacs/legacyheaders/macros.h"
+#include "gromacs/topology/index.h"
+#include "gromacs/pbcutil/rmpbc.h"
+#include "gromacs/fileio/filenm.h"
+#include "gromacs/fileio/trxio.h"
+#include "gromacs/fileio/tpxio.h"
+#include "gromacs/math/do_fit.h"
+#include "gromacs/utility/smalloc.h"
+#include "gromacs/utility/fatalerror.h"
+#include "gromacs/commandline/pargs.h"
+#include "gromacs/commandline/cmdlineinit.h"
 
-struct DataContainer {
+#include "../ExtractData.h"
 
-};
+
 
 void CopyRightMsg() {
 
@@ -299,7 +299,7 @@ int calculate_com(t_topology *top, int indsize, atom_id *index, rvec *x, rvec co
   return 0;
 }
 
-int main (int argc,char *argv[])	{
+int gmx_hole (int argc,char *argv[])	{
 	  const char *desc[] = {
 			  "To calculate channel radius using hole program. \"hole\" program should",
 			  "be present in PATH variable. If -fit is enabled,",
@@ -336,9 +336,12 @@ int main (int argc,char *argv[])	{
 #define NFILE asize(fnm)
    int npargs;
    CopyRightMsg();
+
    npargs = asize(pa);
-   parse_common_args(&argc,argv, PCA_CAN_TIME | PCA_TIME_UNIT | PCA_BE_NICE ,
- 		             NFILE,fnm,npargs,pa, asize(desc),desc,0,NULL,&oenv);
+   if ( ! parse_common_args(&argc,argv, PCA_CAN_TIME | PCA_TIME_UNIT , NFILE,fnm,npargs,pa, asize(desc),desc,0,NULL,&oenv) )
+  {
+    return 0;
+  }
 
 
    FILE *fRad, *fOutPDB;
@@ -422,11 +425,11 @@ int main (int argc,char *argv[])	{
    sprintf(hole_outPDB,"%s_sphere.pdb",prefix_name);
 
 
-   fRad = ffopen(opt2fn("-o",NFILE,fnm),"w");
+   fRad = gmx_ffopen(opt2fn("-o",NFILE,fnm),"w");
    fprintf(fRad,"#Axis \t Radius\n");
 
    if(bOutPDB)
-	   fOutPDB = ffopen(fnOutPDB,"w");
+	   fOutPDB = gmx_ffopen(fnOutPDB,"w");
 
    do	{
 	   if (bFit)	{
@@ -442,9 +445,9 @@ int main (int argc,char *argv[])	{
 		   sprintf(hole_cmd,"hole >%s <<EOF\ncoord %s\nradius %s\ncvect %2.2f %2.2f %2.2f\nsample %2.2f\nendrad %2.2f\ncpoint %2.2f %2.2f %2.2f\nEOF", \
 			   hole_outfile, pdbfile, radfile[0], cvect[XX], cvect[YY], cvect[ZZ], sample, endrad, cpoint[XX], cpoint[YY], cpoint[ZZ] );
 
-	   tmpf = ffopen(pdbfile,"w");
+	   tmpf = gmx_ffopen(pdbfile,"w");
 	   write_pdbfile_indexed(tmpf,NULL,&top.atoms,x,ePBC,box,' ',-1,indsize,index,NULL,TRUE);
-	   ffclose(tmpf);
+	   gmx_ffclose(tmpf);
 
 	   if(0 != system(hole_cmd))
 		   gmx_fatal(FARGS,"Failed to execute command: %s",hole_cmd);
@@ -459,7 +462,7 @@ int main (int argc,char *argv[])	{
 	   remove(hole_outPDB);
 	   nframe++;
 
-   }while(read_next_x(oenv,status,&t,natoms,x,box));
+   }while(read_next_x(oenv,status,&t,x,box));
 
 
    fprintf(stdout, "Thanks for using gmx_hole!!!\n");
@@ -471,4 +474,16 @@ int main (int argc,char *argv[])	{
    fprintf(stderr, "-------- -------- ------------------- -------- ----------\n");
 
    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+
+#ifdef GMX_NO_SYSTEM
+	  gmx_fatal(FARGS,"No calls to system(3) supported on this platform.");
+#endif
+
+  gmx_run_cmain(argc, argv, &gmx_hole);
+
+  return 0;
 }

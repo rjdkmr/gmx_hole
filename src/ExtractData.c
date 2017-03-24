@@ -104,9 +104,9 @@ double* extract_coulmn_double(char *str, int col_min, int col_max)	{
 	return data;
 }
 
-bool is_first_numerics(char *str)	{
+cbool is_first_numerics(char *str)	{
 	char *buffer;
-	bool inumber=FALSE;
+	cbool inumber=FALSE;
 	buffer = strdup(str);
 	remove_leading_white_space(buffer);
 	if(isdigit(buffer[0]))
@@ -253,7 +253,7 @@ void remove_leading_white_space(char *str)	{
 
 	char *final=NULL;
 	int i = 0, n =0;
-	bool got_char = FALSE;
+	cbool got_char = FALSE;
 
 
 	final = (char *) malloc (sizeof(char));

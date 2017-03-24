@@ -44,7 +44,11 @@
 #ifndef EXTRACTDATA_H_
 #define EXTRACTDATA_H_
 
-typedef int bool;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef int cbool;
 
 #ifndef FALSE
 #  define FALSE   0
@@ -159,8 +163,12 @@ char* extract_digits(char *str);
 
  */
 
-bool is_first_numerics(char *str);
+cbool is_first_numerics(char *str);
 
 char** get_block_lines(FILE *fp, char *delimeter, int *num_line);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* EXTRACTDATA_H_ */

@@ -1,53 +1,103 @@
+# ============== Eclipse CDT Error Handling======
+# IF(CMAKE_COMPILER_IS_GNUCC)
+#  SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fmessage-length=0")
+# ENDIF(CMAKE_COMPILER_IS_GNUCC)
+# IF(CMAKE_COMPILER_IS_GNUCXX)
+#  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fmessage-length=0")
+# ENDIF(CMAKE_COMPILER_IS_GNUCXX)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+# ===============================
 
-# Checking GROMACS PAth
-if (NOT DEFINED GMX_PATH AND (NOT DEFINED GMX_LIB OR NOT DEFINED GMX_INCLUDE) )
-message(FATAL_ERROR "\nGromacs path is not defined.....\nUSE:\n -DGMX_PATH=/path/to/gromacs \nOR\n -DGMX_LIB=/path/to/gromacs/lib -DGMX_INCLUDE=/path/to/gromacs/include")
+##############################################################
+################### CHECKING GROMACS PATH ####################
+##############################################################
+find_package(GROMACS COMPONENTS "libgromacs")
+if (NOT GROMACS_FOUND)
+	message(STATUS "Continue checking for other Gromacs version library file")
+endif(NOT GROMACS_FOUND)
+
+if (NOT GROMACS_FOUND)
+	find_package(GROMACS COMPONENTS "libgmx")
+endif(NOT GROMACS_FOUND)
+
+if (NOT GROMACS_FOUND)
+	message(FATAL_ERROR "\nGromacs path is not defined.....\nUSE:\n -DGMX_PATH=/path/to/gromacs\n  or  \n export CMAKE_PREFIX_PATH=\"/path/to/gromacs\"\n" )
+endif(NOT GROMACS_FOUND)
+
+message(STATUS "Found Gromacs include directory: " ${GROMACS_INCLUDE_DIRS})
+
+if(${GROMACS_VERSION} VERSION_LESS "4.5.0")
+	message(FATAL_ERROR, "\n Not implemented for Gromacs version: ${GROMACS_VERSION} \n")
 endif()
 
-
-if(DEFINED GMX_PATH)
-	set(GMX_INCLUDE "${GMX_PATH}/include")
-	set(GMX_LIB "${GMX_PATH}/lib")
+if(${GROMACS_VERSION} VERSION_GREATER "4.5.0" AND ${GROMACS_VERSION} VERSION_LESS "5.0")
+	set(HAVE_GROMACS45 TRUE)
+	ADD_DEFINITIONS("-DHAVE_GROMACS45")
 endif()
 
-include_directories("${GMX_INCLUDE}/gromacs")
+if(${GROMACS_VERSION} VERSION_GREATER "5.0" AND ${GROMACS_VERSION} VERSION_LESS "5.1")
+	set(HAVE_GROMACS50 TRUE)
+	ADD_DEFINITIONS("-DHAVE_GROMACS50")
+  ENABLE_LANGUAGE(CXX)
+endif(${GROMACS_VERSION} VERSION_GREATER "5.0" AND ${GROMACS_VERSION} VERSION_LESS "5.1")
 
+if(${GROMACS_VERSION} VERSION_GREATER "5.1" AND ${GROMACS_VERSION} VERSION_LESS "5.2" )
+	set(HAVE_GROMACS51 TRUE)
+	ADD_DEFINITIONS("-DHAVE_GROMACS51")
+  ENABLE_LANGUAGE(CXX)
+endif(${GROMACS_VERSION} VERSION_GREATER "5.1" AND ${GROMACS_VERSION} VERSION_LESS "5.2")
 
+if(${GROMACS_VERSION} VERSION_GREATER "2016" AND ${GROMACS_VERSION} VERSION_LESS "2017" )
+	set(HAVE_GROMACS2016 TRUE)
+	ADD_DEFINITIONS("-DHAVE_GROMACS2016")
+  ENABLE_LANGUAGE(CXX)
+endif(${GROMACS_VERSION} VERSION_GREATER "2016" AND ${GROMACS_VERSION} VERSION_LESS "2017")
 
-# For library
-# add_library(gmxhole SHARED ExtractData.h ExtractData.c gmx_hole.c)
-# set_target_properties(gmxhole PROPERTIES PUBLIC_HEADER "ExtractData.h; ${CMAKE_CURRENT_BINARY_DIR}/config.h")
+include_directories( ${GROMACS_INCLUDE_DIRS} )
+add_definitions( ${GROMACS_DEFINITIONS} )
+##############################################################
 
-# Searching FFTW library
-find_library(LIBFFTW fftw3f HINTS ${FFTW_LIB})
-if(DEFINED LIBFFTW-NOTFOUND)
-message(FATAL_ERROR "\nFFTW library file libfftw3f.so or libfftw3f.a not found at standard location\nUSE:\n -DFFTW_LIB=/path/to/fftw3/lib")
+##############################################################
+# After gromacs2016, it uses c++11, and therefore it must be compiled with c++11 compiler
+if( HAVE_GROMACS2016 )
+	include(CheckCXXCompilerFlag)
+	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+	if(COMPILER_SUPPORTS_CXX11)
+	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+	elseif(COMPILER_SUPPORTS_CXX0X)
+	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+	else()
+		message(FATAL_ERROR "This version of GROMACS requires C++11-compatible standard library. Please use a newer compiler, or a newer standard library, or use the GROMACS 5.1.x release. See the installation guide for details.")
+	endif()
+
+endif()
+##############################################################
+
+if( HAVE_GROMACS45 )
+	add_executable(gmx_hole GMX46/gmx_hole.c ExtractData.h ExtractData.c)
+	target_link_libraries(gmx_hole ${GROMACS_LIBRARIES} )
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
 endif()
 
-# Searching GROMACS Library
-find_library(LIBGMX gmx HINTS ${GMX_LIB})
-find_library(LIBGMXANA gmxana HINTS ${GMX_LIB})
-find_library(LIBMD md HINTS ${GMX_LIB})
+if( HAVE_GROMACS50 )
+	add_executable(gmx_hole GMX50/gmx_hole.c ExtractData.h ExtractData.c)
+	target_link_libraries(gmx_hole ${GROMACS_LIBRARIES} )
+	SET_TARGET_PROPERTIES(gmx_hole PROPERTIES LINKER_LANGUAGE CXX)
+	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
+endif()
 
-# For Library
-#install(TARGETS gmxhole
-#		EXPORT gmxholeTargets
-#		RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin
-#		LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT shlib
-#		PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/gmx_hole"
-#		COMPONENT dev)
+if( HAVE_GROMACS51 )
+	add_executable(gmx_hole GMX51/gmx_hole.c ExtractData.h ExtractData.c)
+	target_link_libraries(gmx_hole ${GROMACS_LIBRARIES} )
+	SET_TARGET_PROPERTIES(gmx_hole PROPERTIES LINKER_LANGUAGE CXX)
+	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
+endif()
 
-add_executable(gmx_hole gmx_hole.c ExtractData.h ExtractData.c)
-
-
-target_link_libraries(gmx_hole m ${LIBGMX} ${LIBFFTW} ${LIBGMXANA} ${LIBMD} pthread dl)
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-
-install(TARGETS gmx_hole
-  # IMPORTANT: Add the bar executable to the "export-set"
-        EXPORT gmx_holeTargets
-	  	RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
-
-# Adding external program hole
-# add_executable(hole IMPORTED)
-# install(PROGRAMS hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
+if( HAVE_GROMACS2016 )
+	add_executable(gmx_hole GMX2016/gmx_hole.cpp ExtractData.h ExtractData.c)
+	target_link_libraries(gmx_hole ${GROMACS_LIBRARIES} )
+	SET_TARGET_PROPERTIES(gmx_hole PROPERTIES LINKER_LANGUAGE CXX)
+	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
+endif()
