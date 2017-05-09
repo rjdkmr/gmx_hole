@@ -2,7 +2,7 @@
  * This file is part of gmx_hole
  *
  * Author: Rajendra Kumar
- * Copyright (C) 2014  Rajendra Kumar
+ * Copyright (C) 2014-2017  Rajendra Kumar
  *
  * gmx_hole uses hole program for which documentation is available in the
  * following link:
@@ -62,7 +62,7 @@ void CopyRightMsg() {
             "                                                                        ",
             "               Author: Rajendra Kumar                                  ",
             "                                                                        ",
-            "         Copyright (C) 2014  Rajendra Kumar                             ",
+            "         Copyright (C) 2014-2016  Rajendra Kumar                        ",
             "                                                                        ",
             "gmx_hole uses hole program for which documentation is available in the ",
             "following link:                                                         ",
@@ -450,7 +450,7 @@ int main (int argc,char *argv[])	{
 	   if(bOutPDB)
 		   cat_pdb(nframe, hole_outPDB , fOutPDB);
 
-	   //remove(pdbfile);
+	   remove(pdbfile);
 	   remove(hole_outPDB);
 	   nframe++;
 

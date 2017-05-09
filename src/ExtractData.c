@@ -2,7 +2,7 @@
  * This file is part of gmx_hole
  *
  * Author: Rajendra Kumar
- * Copyright (C) 2014  Rajendra Kumar
+ * Copyright (C) 2014-2017  Rajendra Kumar
  *
  * gmx_hole uses hole program for which documentation is available in the
  * following link:
