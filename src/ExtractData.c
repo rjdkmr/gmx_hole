@@ -165,7 +165,7 @@ char* extract_digits(char *str)	{
 	return final;
 }
 
-char** split_by_char(char *str, char *delimeter)	{
+char** split_by_char(char *OrigStr, char *delimeter)	{
 	/*
 	 Similar to split sub-routine in perl
 	 Split input line with the given character
@@ -190,11 +190,15 @@ char** split_by_char(char *str, char *delimeter)	{
 	 OUTPUT $Integer Type: 51
 	 */
 
+	char *str = NULL;
 	char **final = NULL;
 	char *buffer = NULL;
 	int n = 0;
 
-	if(str!=NULL)	{
+	if(OrigStr!=NULL)	{
+		str = malloc(sizeof(char) * strlen(OrigStr)+1);
+		strcpy(str,OrigStr);
+
 		final = (char **) malloc (sizeof(char*));
 		buffer = strtok(str,delimeter);
 		final[n] = buffer;
@@ -215,17 +219,21 @@ char** split_by_char(char *str, char *delimeter)	{
 }
 
 
-char** split_by_space(char *str)	{
+char** split_by_space(char *OrigStr)	{
 	/*
 	 Split input line with the white spaces
 	 and return the list of words in the given line
 	 */
 
+	char *str = NULL;
 	char **final = NULL;
 	char *buffer = NULL;
 	int n = 0;
 
-	if(str!=NULL)	{
+	if(OrigStr!=NULL)	{
+		str = malloc(sizeof(char) * strlen(OrigStr)+1);
+		strcpy(str,OrigStr);
+
 		final = (char **) malloc (sizeof(char*));
 		buffer = strtok(str," \t\n\v\f\r");
 		final[n] = buffer;

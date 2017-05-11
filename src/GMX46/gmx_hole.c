@@ -62,7 +62,7 @@ void CopyRightMsg() {
             "                                                                        ",
             "               Author: Rajendra Kumar                                  ",
             "                                                                        ",
-            "         Copyright (C) 2014-2016  Rajendra Kumar                        ",
+            "         Copyright (C) 2014-2017  Rajendra Kumar                        ",
             "                                                                        ",
             "gmx_hole uses hole program for which documentation is available in the ",
             "following link:                                                         ",
@@ -256,7 +256,13 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 		// Parse 2nd closest residue
 		if ( (bGotDataSection) && (strstr(data[i],"2nd closest surface")!=NULL) ) {
 			SplitData = split_by_space(data[i]);
-			sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+                        // Sometimes ouput contains wiered output, segmentation fault at random
+			if(is_first_numerics(SplitData[3])) {
+				sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+			}
+                        else {
+				sprintf(residues[1], "     ");
+                        }
 			free(SplitData);
 		}
 

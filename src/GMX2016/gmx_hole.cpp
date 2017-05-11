@@ -270,7 +270,13 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 		// Parse 2nd closest residue
 		if ( (bGotDataSection) && (strstr(data[i],"2nd closest surface")!=NULL) ) {
 			SplitData = split_by_space(data[i]);
-			sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+                        // Sometimes ouput contains wiered output, segmentation fault at random
+			if(is_first_numerics(SplitData[3])) {
+				sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+			}
+                        else {
+				sprintf(residues[1], "     ");
+                        }
 			free(SplitData);
 		}
 

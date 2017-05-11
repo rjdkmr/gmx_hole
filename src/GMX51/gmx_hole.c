@@ -67,7 +67,7 @@ void CopyRightMsg() {
             "                                                                        ",
             "               Author: Rajendra Kumar                                  ",
             "                                                                        ",
-            "         Copyright (C) 2014-2016  Rajendra Kumar                        ",
+            "         Copyright (C) 2014-2017  Rajendra Kumar                        ",
             "                                                                        ",
             "gmx_hole uses hole program for which documentation is available in the ",
             "following link:                                                         ",
@@ -168,6 +168,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 
 	// Parse center coordinate and radius, skip mid-point
 	for(i=0;i<number;i++)	{
+
 		if (data[i]==NULL)
 			continue;
 
@@ -182,6 +183,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 		}
 
 		if(bCenXYZ)	{
+			
 			if( (is_first_numerics(data[i])) && (strstr(data[i], "sampled") != NULL) ) {
 
 				if(radius == NULL)	{
@@ -242,6 +244,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 			continue;
 		}
 
+
 		// Parse coordinate
 		if ( (bGotDataSection) && (strstr(data[i],"at point")!=NULL) ) {
 			SplitData = split_by_space(data[i]);
@@ -261,7 +264,13 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 		// Parse 2nd closest residue
 		if ( (bGotDataSection) && (strstr(data[i],"2nd closest surface")!=NULL) ) {
 			SplitData = split_by_space(data[i]);
-			sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+                        // Sometimes ouput contains wiered output, segmentation fault at random
+			if(is_first_numerics(SplitData[3])) {
+				sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+			}
+                        else {
+				sprintf(residues[1], "     ");
+                        }
 			free(SplitData);
 		}
 
@@ -454,6 +463,7 @@ int gmx_hole (int argc,char *argv[])	{
 
 	   fprintf(fRad,"\n# Time = %15.5f\n",t);
 	   add_data_to_file(hole_outfile, fRad, cvect);
+
 
 	   if(bOutPDB)
 		   cat_pdb(nframe, hole_outPDB , fOutPDB);

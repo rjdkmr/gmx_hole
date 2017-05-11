@@ -111,13 +111,13 @@ void remove_leading_white_space(char *str);
  and replace input string with new line/string.
  */
 
-char** split_by_space(char *str);
+char** split_by_space(char *OrigStr);
 /*
  Split input line with the white spaces
  and return the list of words in the given line
  */
 
-char** split_by_char(char *str, char *delimeter);
+char** split_by_char(char *OrigStr, char *delimeter);
 /*
  Similar to split sub-routine in perl
  Split input line with the given character
