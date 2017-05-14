@@ -131,7 +131,7 @@ int cat_pdb(int nframe, char *fn_input, FILE *fOut)	{
 }
 
 int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
-	int i = 0, j = 0, index =0;
+	int i = 0, j = 0, index =0, num;
 	FILE *f_input;
 	int number=0, dataNumber=0;
 	float *radius=NULL, *center=NULL;
@@ -163,6 +163,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 
 	// Parse center coordinate and radius, skip mid-point
 	for(i=0;i<number;i++)	{
+
 		if (data[i]==NULL)
 			continue;
 
@@ -177,6 +178,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 		}
 
 		if(bCenXYZ)	{
+			
 			if( (is_first_numerics(data[i])) && (strstr(data[i], "sampled") != NULL) ) {
 
 				if(radius == NULL)	{
@@ -188,7 +190,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 					srenew(center, dataNumber+1);
 				}
 
-				SplitData = split_by_space(data[i]);
+				SplitData = split_by_space(data[i], &num);
 				//fprintf(fRad,"%s   %s\n",SplitData[0],SplitData[1]);  // old one
 
 				dataNumber +=1 ;
@@ -237,9 +239,10 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 			continue;
 		}
 
+
 		// Parse coordinate
 		if ( (bGotDataSection) && (strstr(data[i],"at point")!=NULL) ) {
-			SplitData = split_by_space(data[i]);
+			SplitData = split_by_space(data[i], &num);
 			coord[XX] = strtof(SplitData[2], NULL);
 			coord[YY] = strtof(SplitData[3], NULL);
 			coord[ZZ] = strtof(SplitData[4], NULL);
@@ -248,17 +251,23 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 
 		// Parse closest residue
 		if ( (bGotDataSection) && (strstr(data[i],"closest atom surface")!=NULL) ) {
-			SplitData = split_by_space(data[i]);
-			sprintf(residues[0], "%s%s", SplitData[5], SplitData[6]);
+			SplitData = split_by_space(data[i], &num);
+			if(num == 8)
+				sprintf(residues[0], "%s%s", SplitData[5], SplitData[7]);
+			else
+				sprintf(residues[0], "%s%s", SplitData[5], SplitData[6]);
 			free(SplitData);
 		}
 
 		// Parse 2nd closest residue
 		if ( (bGotDataSection) && (strstr(data[i],"2nd closest surface")!=NULL) ) {
-			SplitData = split_by_space(data[i]);
+			SplitData = split_by_space(data[i], &num);
                         // Sometimes ouput contains wiered output, segmentation fault at random
 			if(is_first_numerics(SplitData[3])) {
-				sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
+				if(num == 8)
+					sprintf(residues[1], "%s%s", SplitData[5], SplitData[7]);
+				else
+					sprintf(residues[1], "%s%s", SplitData[5], SplitData[6]);
 			}
                         else {
 				sprintf(residues[1], "     ");

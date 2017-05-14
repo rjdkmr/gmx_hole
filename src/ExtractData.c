@@ -54,11 +54,11 @@ int* extract_coulmn_integer(char *str, int col_min, int col_max)	{
 	int *data=NULL;
 	char *buffer=NULL, **str_data=NULL;
 	int size = (col_max-col_min)+1;
-	int i=0,n=0;
+	int i=0,n=0, num;
 
 	buffer = strdup(str);
 	remove_leading_white_space(buffer);
-	str_data = split_by_space(buffer);
+	str_data = split_by_space(buffer, &num);
 
 	data = (int *) malloc (sizeof(int)*size);
 	for(i=(col_min-1);i<col_max;i++){
@@ -88,11 +88,11 @@ double* extract_coulmn_double(char *str, int col_min, int col_max)	{
 	double *data=NULL;
 	char *buffer=NULL, **str_data=NULL;
 	int size = (col_max-col_min)+1;
-	int i=0,n=0;
+	int i=0,n=0, num;
 
 	buffer = strdup(str);
 	remove_leading_white_space(buffer);
-	str_data = split_by_space(buffer);
+	str_data = split_by_space(buffer, &num);
 
 	data = (double *) malloc (sizeof(double)*size);
 	for(i=(col_min-1);i<col_max;i++){
@@ -219,7 +219,7 @@ char** split_by_char(char *OrigStr, char *delimeter)	{
 }
 
 
-char** split_by_space(char *OrigStr)	{
+char** split_by_space(char *OrigStr, int *num)	{
 	/*
 	 Split input line with the white spaces
 	 and return the list of words in the given line
@@ -250,6 +250,7 @@ char** split_by_space(char *OrigStr)	{
 			n++;
 		}
 	}
+	*num = n;
 	return final;
 }
 

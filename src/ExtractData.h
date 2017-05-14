@@ -111,7 +111,7 @@ void remove_leading_white_space(char *str);
  and replace input string with new line/string.
  */
 
-char** split_by_space(char *OrigStr);
+char** split_by_space(char *OrigStr, int *num);
 /*
  Split input line with the white spaces
  and return the list of words in the given line
