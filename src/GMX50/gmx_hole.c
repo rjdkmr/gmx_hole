@@ -47,6 +47,7 @@
 #include "gromacs/legacyheaders/gmx_fatal.h"
 #include "gromacs/legacyheaders/index.h"
 #include "gromacs/legacyheaders/rmpbc.h"
+#include "gromacs/legacyheaders/vec.h"
 #include "gromacs/fileio/filenm.h"
 #include "gromacs/fileio/trxio.h"
 #include "gromacs/fileio/tpxio.h"
@@ -361,7 +362,7 @@ int gmx_hole (int argc,char *argv[])	{
    int 		  indsize, nfit;
    char       *grpnm=NULL,*fitname;
    atom_id    *index=NULL,*ifit=NULL;
-   rvec       *xp, *x;
+   rvec       *xp, *x, x_shift;
    char       prefix_name[32], pdbfile[32], hole_outfile[32], hole_outPDB[32];
    const char *fnOutPDB=NULL;
    char       hole_cmd[1024];
@@ -400,15 +401,21 @@ int gmx_hole (int argc,char *argv[])	{
 
 
    //Getting index
+   printf("\nChoose a group for hole calculation...\n");
    get_index(&top.atoms,ftp2fn_null(efNDX,NFILE,fnm),1,&indsize,&index,&grpnm);
 
-   //if (bFit)
-	   //reset_x(nfit,ifit,top.atoms.nr,NULL,xp,w_rls);
+   if (bFit) {
+	   copy_rvec(xp[index[0]], x_shift);
+	   reset_x(nfit,ifit,top.atoms.nr,NULL,xp,w_rls);
+	   rvec_dec(x_shift, xp[index[0]]);
+    }
 
    natoms=read_first_x(oenv,&status,ftp2fn(efTRX,NFILE,fnm),&t,&x,box);
    if (bFit)	{
-	   //reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
+	   reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
 	   do_fit(natoms,w_rls,xp,x);
+           for (i = 0; (i < natoms); i++)
+                rvec_inc(x[i], x_shift);
    }
 
    if( (cpoint[XX]==999) && (cpoint[YY]==999) && (cpoint[ZZ]==999) )
@@ -439,8 +446,10 @@ int gmx_hole (int argc,char *argv[])	{
 
    do	{
 	   if (bFit)	{
-		   //reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
+		   reset_x(nfit,ifit,top.atoms.nr,NULL,x,w_rls);
 		   do_fit(natoms,w_rls,xp,x);
+           	   for (i = 0; (i < natoms); i++)
+                	rvec_inc(x[i], x_shift);
 	   }
 
 	   //Creating variable for executing hole
