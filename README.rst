@@ -22,7 +22,7 @@ Requirements
 ------------
 
 * To compile and install, **GROMACS** libraries are required.
-  Presently, Gromacs **4.5.x**, **4.6.x**, **5.0.x**, **5.1.x** and **2016.x**
+  Presently, Gromacs **4.5.x**, **4.6.x**, **5.0.x**, **5.1.x**, **2016.x** and **2018.x**
   versions are supported.
 
 * To use ``gmx_hole``, `HOLE`_ program should be already installed.

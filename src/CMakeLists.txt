@@ -53,13 +53,20 @@ if(${GROMACS_VERSION} VERSION_GREATER "2016" AND ${GROMACS_VERSION} VERSION_LESS
   ENABLE_LANGUAGE(CXX)
 endif(${GROMACS_VERSION} VERSION_GREATER "2016" AND ${GROMACS_VERSION} VERSION_LESS "2017")
 
+if(${GROMACS_VERSION} VERSION_GREATER "2018" AND ${GROMACS_VERSION} VERSION_LESS "2019" )
+	set(HAVE_GROMACS2018 TRUE)
+	ADD_DEFINITIONS("-DHAVE_GROMACS2018")
+  ENABLE_LANGUAGE(CXX)
+endif(${GROMACS_VERSION} VERSION_GREATER "2018" AND ${GROMACS_VERSION} VERSION_LESS "2019")
+
+
 include_directories( ${GROMACS_INCLUDE_DIRS} )
 add_definitions( ${GROMACS_DEFINITIONS} )
 ##############################################################
 
 ##############################################################
 # After gromacs2016, it uses c++11, and therefore it must be compiled with c++11 compiler
-if( HAVE_GROMACS2016 )
+if( HAVE_GROMACS2016 OR HAVE_GROMACS2018)
 	include(CheckCXXCompilerFlag)
 	CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 	CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -101,3 +108,11 @@ if( HAVE_GROMACS2016 )
 	SET_TARGET_PROPERTIES(gmx_hole PROPERTIES LINKER_LANGUAGE CXX)
 	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
 endif()
+
+if( HAVE_GROMACS2018 )
+	add_executable(gmx_hole GMX2018/gmx_hole.cpp ExtractData.h ExtractData.c)
+	target_link_libraries(gmx_hole ${GROMACS_LIBRARIES} )
+	SET_TARGET_PROPERTIES(gmx_hole PROPERTIES LINKER_LANGUAGE CXX)
+	install(TARGETS gmx_hole DESTINATION "${INSTALL_BIN_DIR}" COMPONENT bin)
+endif()
+

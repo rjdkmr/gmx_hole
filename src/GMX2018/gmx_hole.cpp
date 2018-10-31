@@ -42,18 +42,26 @@
 
 #include <string.h>
 
-#include "gromacs/legacyheaders/typedefs.h"
-#include "gromacs/legacyheaders/macros.h"
+//#include "gromacs/legacyheaders/typedefs.h"
+//#include "gromacs/legacyheaders/macros.h"
 #include "gromacs/topology/index.h"
+#include "gromacs/topology/topology.h"
+#include "gromacs/topology/atoms.h"
 #include "gromacs/pbcutil/rmpbc.h"
-#include "gromacs/fileio/filenm.h"
+#include "gromacs/utility/futil.h"
+#include "gromacs/fileio/oenv.h"
+#include "gromacs/fileio/confio.h"
 #include "gromacs/fileio/trxio.h"
 #include "gromacs/fileio/tpxio.h"
 #include "gromacs/math/do_fit.h"
 #include "gromacs/math/vec.h"
 #include "gromacs/utility/smalloc.h"
 #include "gromacs/utility/fatalerror.h"
+#include "gromacs/utility/cstringutil.h"
+#include "gromacs/utility/arraysize.h"
+#include "gromacs/commandline/filenm.h"
 #include "gromacs/commandline/pargs.h"
+#include "gromacs/commandline/viewit.h"
 #include "gromacs/commandline/cmdlineinit.h"
 
 #include "../ExtractData.h"
@@ -62,7 +70,7 @@
 
 void CopyRightMsg() {
 
-    char *copyright[] = {
+    const char *copyright[] = {
             "                                                                        ",
             "                  :-)  gmx_hole (-:                                     ",
             "                                                                        ",
@@ -107,6 +115,7 @@ void CopyRightMsg() {
             "                                                                        ",
             "                                                                        "
     };
+
     int i = 0;
     char *str;
     for(i=0; i<43; i++) {
@@ -296,7 +305,7 @@ int add_data_to_file(char *fn_input, FILE *fRad, rvec cvect)	{
 	return 0;
 }
 
-int calculate_com(t_topology *top, int indsize, atom_id *index, rvec *x, rvec com)	{
+int calculate_com(t_topology *top, int indsize, int *index, rvec *x, rvec com)	{
     int d, i;
 	real mass = 0;
 
@@ -330,8 +339,9 @@ int gmx_hole (int argc,char *argv[])	{
 	  real sample = 0.5;
 	  rvec cvect = {0, 0, 1}, cpoint = {999, 999, 999};
 	  gmx_bool bFit=TRUE;
-	  static char *radfile[] = {"simple.rad"};
-	  output_env_t oenv;
+	  static const char *radfile[] = {"simple.rad"};
+	  gmx_output_env_t *oenv;
+
 	  t_pargs pa[] = {
 			  { "-fit",    TRUE,  etBOOL, {&bFit},    "To fit structure" },
 			  { "-endrad", FALSE, etREAL, {&endrad},  "radius above which the hole2 program regards a result as an indicating that the end of the pore has been reached" },
@@ -364,14 +374,15 @@ int gmx_hole (int argc,char *argv[])	{
 
    t_trxstatus *status;
    t_topology top;
+   t_atoms    atoms;
    char title[STRLEN];
    int        ePBC, natoms, nframe=0;
    real       t ;
    matrix     box;
    int 		  indsize, nfit;
    char       *grpnm=NULL,*fitname;
-   atom_id    *index=NULL,*ifit=NULL;
-   rvec       *xp=NULL, *x=NULL, x_shift;
+   int    *index=NULL,*ifit=NULL;
+   rvec       *xp, *x, x_shift;
    char       prefix_name[32], pdbfile[32], hole_outfile[32], hole_outPDB[32];
    const char *fnOutPDB=NULL;
    char       hole_cmd[1024];
@@ -380,7 +391,7 @@ int gmx_hole (int argc,char *argv[])	{
    gmx_bool bOutPDB=FALSE, bM=TRUE;
 
    //Reading topology
-   read_tps_conf(ftp2fn(efTPS,NFILE,fnm),title,&top,&ePBC,&xp,NULL,box,FALSE);
+   read_tps_conf(ftp2fn(efTPS,NFILE,fnm),&top,&ePBC,&xp,NULL,box,FALSE);
 
    if(opt2fn_null("-pdb",NFILE,fnm)!=NULL)	{
 	   fnOutPDB = opt2fn_null("-pdb",NFILE,fnm);
@@ -470,7 +481,8 @@ int gmx_hole (int argc,char *argv[])	{
 			   hole_outfile, pdbfile, radfile[0], cvect[XX], cvect[YY], cvect[ZZ], sample, endrad, cpoint[XX], cpoint[YY], cpoint[ZZ] );
 
 	   tmpf = gmx_ffopen(pdbfile,"w");
-	   write_pdbfile_indexed(tmpf,NULL,&top.atoms,x,ePBC,box,' ',-1,indsize,index,NULL,TRUE);
+       //Changed in GROMACS-2018
+       write_pdbfile_indexed(tmpf, NULL, &top.atoms,x,ePBC,box,' ',-1,indsize,index,NULL,TRUE,FALSE);
 	   gmx_ffclose(tmpf);
 
 	   if(0 != system(hole_cmd))
@@ -478,7 +490,6 @@ int gmx_hole (int argc,char *argv[])	{
 
 	   fprintf(fRad,"\n# Time = %15.5f\n",t);
 	   add_data_to_file(hole_outfile, fRad, cvect);
-
 
 	   if(bOutPDB)
 		   cat_pdb(nframe, hole_outPDB , fOutPDB);
