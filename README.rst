@@ -1,4 +1,6 @@
+.. |HOLE| raw:: html
 
+   <a href="http://www.holeprogram.org/" target="_blank">HOLE</a>
 
 
 
@@ -9,14 +11,12 @@ This tool is moved to `gmx_clusterByFeatures <https://gmx-clusterbyfeatures.read
 
 ******
 
-.. _HOLE: http://www.holeprogram.org/
-
 
 gmx_hole
 ========
 
 It can be used to calculate radius of protein channel/cavity for GROMACS MD
-trajectory. ``gmx_hole`` uses `HOLE`_ program to calculate radius of cavity/channel
+trajectory. ``gmx_hole`` uses |HOLE| program to calculate radius of cavity/channel
 and dumps the output to a text file as a function of tiime. It also extract
 channel's outlining residues and dumps to same output file. This output file
 can be further read to perform final statistcal operations and plotting.
@@ -35,7 +35,7 @@ Requirements
   Presently, Gromacs **4.5.x**, **4.6.x**, **5.0.x**, **5.1.x**, **2016.x** and **2018.x**
   versions are supported.
 
-* To use ``gmx_hole``, `HOLE`_ program should be already installed.
+* To use ``gmx_hole``, |HOLE| program should be already installed.
 
 
 ******
@@ -49,7 +49,7 @@ Download
 
 
 
-***
+******
 
 Installation
 ------------
@@ -76,7 +76,7 @@ If fftw library ``libfftw3f.so`` or ``libfftw3f.a`` are not present in standard 
 Usage
 -----
 
-To calculate channel radius using hole program. `HOLE`_ program should be
+To calculate channel radius using hole program. |HOLE| program should be
 already installed and present in ``$PATH`` environment variable.
 
 .. code-block:: bash
