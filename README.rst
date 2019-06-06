@@ -1,6 +1,16 @@
 
 
+
+
+This tool is moved to `gmx_clusterByFeatures <https://gmx-clusterbyfeatures.readthedocs.io/>`_ as sub-command `hole <https://gmx-clusterbyfeatures.readthedocs.io/en/latest/commands/hole.html>`_.
+===================================================================================================================================================================================================
+
+`gmx_clusterByFeatures <https://gmx-clusterbyfeatures.readthedocs.io/>`_ is easy to install by one command: ``sudo pip3 install gmx-clusterByFeatures``. `hole <https://gmx-clusterbyfeatures.readthedocs.io/en/latest/commands/hole.html>`_ command is same as ``gmx_hole``. **HELP** and **USAGE** for ``gmx_clusterByFeatures hole`` is provided in this `link <https://gmx-clusterbyfeatures.readthedocs.io/en/latest/commands/distmat.html>`_. Moreover, `gmx_clusterByFeatures <https://gmx-clusterbyfeatures.readthedocs.io/>`_ include `holeplot <https://gmx-clusterbyfeatures.readthedocs.io/en/latest/commands/holeplot.html>`_, which can be used to plot the data obtained from `hole <https://gmx-clusterbyfeatures.readthedocs.io/en/latest/commands/hole.html>`_.
+
+******
+
 .. _HOLE: http://www.holeprogram.org/
+
 
 gmx_hole
 ========
@@ -15,7 +25,7 @@ Please cite the original publication of hole:
   O.S. Smart, J.M. Goodfellow and B.A. Wallace (1993). The Pore Dimensions of Gramicidin A. Biophysical Journal 65:2455-2460.
 
 
-***
+******
 
 
 Requirements
@@ -28,7 +38,7 @@ Requirements
 * To use ``gmx_hole``, `HOLE`_ program should be already installed.
 
 
-***
+******
 
 Download
 --------
@@ -61,7 +71,7 @@ If fftw library ``libfftw3f.so`` or ``libfftw3f.a`` are not present in standard 
       -DFFTW_LIB=/path/to/fftw3/lib
 
 
-***
+******
 
 Usage
 -----
@@ -74,4 +84,4 @@ already installed and present in ``$PATH`` environment variable.
   gmx_hole -h
 
 
-***
+******
